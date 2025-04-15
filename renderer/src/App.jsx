@@ -5,7 +5,6 @@ import TabBar from "./components/TabBar";
 import ContentPlaceholder from "./components/ContentPlaceholder";
 import "./assets/App.css";
 
-
 const DEFAULT_SIDEBAR_WIDTH = 250;
 const MIN_SIDEBAR_WIDTH = 150;
 const MAX_SIDEBAR_WIDTH = 500;
@@ -109,7 +108,7 @@ function App() {
         const formattedList = list.map((item) => ({
           id: String(item.id),
           name: item.client_name || `Účet ${item.id}`,
-          client_country: item?.client_country
+          client_country: item?.client_country,
         }));
         setAccounts(formattedList);
         setViewMode("main");
@@ -196,6 +195,35 @@ function App() {
     [activeTabId, openTabs]
   );
 
+  const handleReorderTabs = useCallback(
+    (fromId, toId) => {
+      const fromIndex = openTabs.findIndex((tab) => tab.id === fromId);
+      const toIndex = openTabs.findIndex((tab) => tab.id === toId);
+      if (fromIndex === -1 || toIndex === -1) return;
+
+      const updated = [...openTabs];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      setOpenTabs(updated);
+    },
+    [openTabs]
+  );
+
+  const handleGoHome = useCallback(async () => {
+    console.log("Navigating back to initial screen...");
+    setOpenTabs([]);
+    setActiveTabId(null);
+    setViewMode("initial");
+    // Zavoláme IPC handler pro úklid v main procesu (zavření views)
+    try {
+      await window.electronAPI.resetToHome();
+      console.log("Main process reset successful.");
+    } catch (error) {
+      console.error("Error calling resetToHome in main process:", error);
+    }
+    // Není potřeba volat showMainLayout zde, protože přecházíme na 'initial'
+  }, []); // Závislosti jsou prázdné, protože funkce nemění své chování
+
   const handleSearchChange = useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
@@ -275,6 +303,7 @@ function App() {
         onSearchChange={handleSearchChange}
         selectedAccountId={activeTabId}
         setViewMode={setViewMode}
+        onGoHome={handleGoHome} // <-- Přidat novou prop
       />
       {/* <div
         className="sidebar-resizer"
@@ -287,6 +316,7 @@ function App() {
           onSwitchTab={handleSwitchTab}
           onCloseTab={handleCloseTab}
           height={TAB_BAR_HEIGHT}
+          onReorderTabs={handleReorderTabs}
         />
         <ContentPlaceholder activeTab={activeTabInfo} />
       </div>

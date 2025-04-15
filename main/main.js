@@ -233,12 +233,12 @@ async function createWindow() {
   mainWindow = new BaseWindow({
     width: 1200,
     minWidth: 600,
+    height: 800,
+    minHeight: 600,
     icon: path.join(
       __dirname,
       "./renderer/public/img/logos/easy-access-logo.ico"
     ),
-    height: 800,
-    minHeight: 400,
     show: false,
     autoHideMenuBar: true,
     title: "Easy Access",
@@ -587,6 +587,22 @@ ipcMain.handle("switch-tab", (_event, accountId) => {
     return { success: false, error: "View not found or destroyed." };
   }
   showView(accountId);
+  return { success: true };
+});
+
+ipcMain.handle("reset-to-home", async () => {
+  log.info("IPC: Reset to home requested — closing all WebViews.");
+  Object.values(webViews).forEach(({ view }) => {
+    if (mainWindow && view && !view.webContents.isDestroyed()) {
+      try {
+        mainWindow.contentView.removeChildView(view);
+      } catch (e) {
+        log.warn("Error removing view during reset-to-home:", e);
+      }
+    }
+  });
+  webViews = {};
+  activeWebViewId = null;
   return { success: true };
 });
 

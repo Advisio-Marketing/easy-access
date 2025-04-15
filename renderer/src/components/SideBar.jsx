@@ -14,6 +14,7 @@ function Sidebar({
   onSearchChange,
   selectedAccountId,
   setViewMode,
+  onGoHome,
 }) {
   return (
     <div
@@ -22,7 +23,10 @@ function Sidebar({
     >
       <div className="heading-box">
         <h2 className="sidebar-title">Účty</h2>
-        <FaHome className="home-btn" onClick={() => setViewMode("initial")} />
+        <FaHome
+          className="home-btn"
+          onClick={onGoHome} // <-- Použít novou prop onGoHome
+        />
       </div>
 
       {/* --- Vyhledávací pole --- */}
@@ -60,7 +64,9 @@ function Sidebar({
               onClick={() => onSelect(account)}
               title={`${account.name} - ${account.client_country}`}
             >
-              <span className="sidebar-item-name">{account.name} - {account.client_country}</span>
+              <span className="sidebar-item-name">
+                {account.name} - {account.client_country}
+              </span>
             </li>
           ))}
         </ul>
@@ -83,6 +89,7 @@ Sidebar.propTypes = {
   searchTerm: PropTypes.string.isRequired,
   onSearchChange: PropTypes.func.isRequired,
   selectedAccountId: PropTypes.string, // ID účtu aktivního v tabech
+  onGoHome: PropTypes.func.isRequired, // <-- Přidat prop type
 };
 
 export default Sidebar;

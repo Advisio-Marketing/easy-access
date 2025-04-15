@@ -38,7 +38,7 @@
   },
   "// ----- Konfigurace pro Electron Builder (přidáme později) -----": "",
   "build": {
-    "appId": "com.example.easyaccess",
+    "appId": "easyaccess",
     "productName": "Easy Access",
     "directories": {
       "output": "dist/electron"
