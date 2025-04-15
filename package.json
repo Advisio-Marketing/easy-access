@@ -1,0 +1,69 @@
+{
+  "name": "easy-access",
+  "version": "1.0.0",
+  "description": "Internal tool Easy Access",
+  "// ----- DŮLEŽITÉ: Vstupní bod pro Electron -----": "",
+  "main": "main/main.js",
+  "private": true,
+  "scripts": {
+    "// ----- Vývojové skripty -----": "",
+    "dev:vite": "vite renderer --port 5173",
+    "dev:electron": "electron .",
+    "dev": "concurrently \"npm:dev:vite\" \"wait-on tcp:5173 && npm:dev:electron\"",
+    "// ----- Build skripty (pro electron-builder) -----": "",
+    "check_dist": "node -e \"const fs = require('fs'); const path = require('path'); console.log('--- Kontrola složky dist ---'); try { const files = fs.readdirSync(path.resolve(__dirname, 'dist')); console.log('dist obsahuje:', files); const rendererExists = fs.existsSync(path.resolve(__dirname, 'dist/renderer')); console.log('dist/renderer existuje:', rendererExists); if(rendererExists) { const rendererFiles = fs.readdirSync(path.resolve(__dirname, 'dist/renderer')); console.log('dist/renderer obsahuje (prvních 5):', rendererFiles.slice(0, 5)); } } catch(e) { console.error('Chyba při kontrole dist:', e.message); } console.log('--- Konec kontroly ---');\"",
+    "build:vite": "vite build",
+    "build:electron": "electron-builder",
+    "build": "npm run build:vite && npm run check_dist && npm run build:electron",
+    "// ----- Spuštění produkční verze -----": "",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Your Name or Company",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "electron-log": "^5.1.5",
+    "electron-updater": "^6.2.1",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.9",
+    "electron-builder": "^24.13.3",
+    "vite": "^5.2.11",
+    "wait-on": "^7.2.0"
+  },
+  "// ----- Konfigurace pro Electron Builder (přidáme později) -----": "",
+  "build": {
+    "appId": "easyaccess",
+    "productName": "Easy Access",
+    "directories": {
+      "output": "dist/electron"
+    },
+    "files": [
+      {
+        "from": "dist/renderer",
+        "to": "dist/renderer"
+      },
+      "main/**/*",
+      "package.json",
+      "renderer/public/img/logos/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "renderer/public/img/logos/easy-access-logo.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "renderer/public/img/logos/easy-access-logo.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "renderer/public/img/logos/easy-access-logo.png"
+    }
+  }
+}
