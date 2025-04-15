@@ -30,7 +30,7 @@ body {
 
 /* Pozadí aplikace pouze jednou */
 .with-back-img {
-  background-image: url("../../public/img/background.webp");
+  background-image: url("/img/background.webp");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -106,10 +106,10 @@ body {
 
 .initial-btn-box::before {
   left: 0;
-  background-image: url("../../public/img/header-l.svg");
+  background-image: url("/img/header-l.svg");
 }
 
 .initial-btn-box::after {
   right: 0;
-  background-image: url("../../public/img/header-r.svg");
+  background-image: url("/img/header-r.svg");
 }

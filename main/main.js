@@ -1,5 +1,3 @@
-// main/main.js (Kompletní kód, CommonJS, Button-First, Dynamic URL, Tabs, Consent Cookies)
-
 // --- Imports ---
 const {
   app,
@@ -67,6 +65,7 @@ const consentCookies = {
   "euconsent-v2":
     "CQP2yAAQP2yAAAHABBENBkFsAP_gAEPgAATIJ1QPgAFQAMAA0ACAAFQAMAAcABAACQAFoAMgAaAA6AB6AEUAI4ASQAmABQACoAFsAL4AZQA0QBsAG2AQYBCACIAEUAI4ATQAnQBPgCkAFaAMMAaQA5AB4gD9AIGAQiAjgCOgFIAKaAXyA_4EAAI1AR0AmkBSACpAFXQLLAswBbgC4QFzALzAYyBAUCBAEZgJsATqBOuA6ABUADgAIAASAAyABoAEcAJgAUAA0ACEAEQAI4ATQArQBhgDkAH6AQiAjgCOgH_AUgAqQBbgC5gF5gTYAnKBOsAA.f_wACHwAAAAA",
 };
+
 // -----------------------------
 
 // --- API Funkce ---
@@ -74,7 +73,6 @@ async function fetchAccountList() {
   log.info("Attempting to fetch account list from API...");
   const requestUrl = "https://app.advisio.cz/api/system-list/heureka/"; // HTTPS
   const requestOptions = { method: "GET", url: requestUrl, timeout: 15000 };
-  // Bez customHeaders
   return new Promise((resolve, reject) => {
     const request = net.request(requestOptions);
     request.on("response", (response) => {
@@ -130,7 +128,6 @@ async function fetchAccountCookies(accountId) {
   log.info(`Attempting to fetch cookies for account ID: ${accountId}...`);
   const requestUrl = `https://app.advisio.cz/api/system-get/heureka/${accountId}/`; // HTTPS
   const requestOptions = { method: "GET", url: requestUrl, timeout: 15000 };
-  // Bez customHeaders
   return new Promise((resolve, reject) => {
     const request = net.request(requestOptions);
     request.on("response", (response) => {
@@ -244,11 +241,9 @@ async function createWindow() {
     title: "Easy Access",
     backgroundColor: "#ffffff",
   });
-  mainWindow.on("ready-to-show", () => {
-    mainWindow.show();
-    log.info("Main window shown.");
-    updateMainLayout();
-  });
+
+  // Odstraněna původní logika ready-to-show,
+  // místo toho bude okno zobrazeno, až se načte obsah React UI.
   mainWindow.on("resize", updateMainLayout);
   mainWindow.on("closed", () => {
     log.info("Main window closed.");
@@ -266,11 +261,21 @@ async function createWindow() {
       sandbox: !is.dev,
       contextIsolation: true,
       nodeIntegration: false,
-      devTools: is.dev,
+      // devTools: is.dev,
     },
   });
   mainWindow.contentView.addChildView(reactUiView);
   log.info("React UI WebContentsView added.");
+
+  // Přidání posluchače did-finish-load pro zajištění zobrazení okna, 
+  // jakmile se načte obsah React UI.
+  reactUiView.webContents.on("did-finish-load", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.show();
+      log.info("Main window shown (after did-finish-load).");
+      updateMainLayout();
+    }
+  });
 
   // --- Načtení React UI ---
   const viteDevServerUrl =
@@ -301,13 +306,14 @@ async function createWindow() {
   }
   // -------------------------
 
-  if (is.dev) {
-    try {
-      reactUiView.webContents.openDevTools({ mode: "detach" });
-    } catch (error) {
-      log.error("Error opening React UI DevTools:", error);
-    }
-  }
+  // if (is.dev) {
+  //   try {
+  //     // Otevření DevTools pokud je aplikace v režimu vývoje
+  //     reactUiView.webContents.openDevTools({ mode: "detach" });
+  //   } catch (error) {
+  //     log.error("Error opening React UI DevTools:", error);
+  //   }
+  // }
   log.info("createWindow function finished.");
 } // End of createWindow
 
@@ -734,12 +740,3 @@ app.on("window-all-closed", () => {
 process.on("unhandledRejection", (reason, promise) => {
   log.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
-// ----------------------------------
-
-/*
---------------------------------------------------------------------------
- KOMENTÁŘ: Co musí být na vašem interním update serveru
---------------------------------------------------------------------------
- (...)
---------------------------------------------------------------------------
-*/
