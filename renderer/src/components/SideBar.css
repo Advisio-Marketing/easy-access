@@ -1,108 +1,131 @@
 /* src/renderer/src/components/Sidebar.css */
 .sidebar {
-    background-color: #f8f9fa;
-    border-right: 1px solid #dee2e6;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-y: hidden; /* Celkový scrollbar nechceme */
-    flex-shrink: 0;
-  }
-  
-  .sidebar-title {
-    padding: 15px;
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #495057;
-    border-bottom: 1px solid #dee2e6;
-    flex-shrink: 0;
-  }
-  
-  /* Kontejner pro vyhledávání */
-  .sidebar-search-container {
-    padding: 10px 15px;
-    border-bottom: 1px solid #dee2e6;
-    background-color: #f8f9fa;
-    flex-shrink: 0;
-  }
-  
-  .sidebar-search-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 0.9em;
-  }
-  
-  .sidebar-search-input:focus {
-    outline: none;
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-  }
-  
-  .sidebar-search-input:disabled {
-      background-color: #e9ecef;
-      cursor: not-allowed;
-  }
-  
-  
-  /* Stavové zprávy */
-  .sidebar-loading,
-  .sidebar-error,
-  .sidebar-empty {
-    padding: 15px;
-    color: #6c757d;
-    text-align: center;
-    font-style: italic;
-  }
-  .sidebar-error {
-    color: #dc3545;
-    font-style: normal;
-    font-weight: bold;
-  }
-  
-  /* Seznam účtů */
-  .sidebar-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex-grow: 1; /* Vyplní zbytek místa */
-    overflow-y: auto; /* Scrollbar JEN pro seznam */
-    scrollbar-width: thin;
-    scrollbar-color: #ced4da #f8f9fa;
-  }
-  .sidebar-list::-webkit-scrollbar { height: 5px; width: 6px; }
-  .sidebar-list::-webkit-scrollbar-track { background: #f8f9fa; }
-  .sidebar-list::-webkit-scrollbar-thumb { background-color: #ced4da; border-radius: 10px; border: 1px solid #f8f9fa; }
-  
-  
-  .sidebar-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #e9ecef;
-    color: #212529;
-    transition: background-color 0.15s ease-in-out;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-  
-  .sidebar-item:hover {
-    background-color: #e9ecef;
-  }
-  
-  /* Zvýraznění položky odpovídající aktivní záložce */
-  .sidebar-item.selected-in-sidebar {
-    background-color: #cfe2ff; /* Světle modrá */
-    /* font-weight: 500; */ /* Může být moc výrazné */
-  }
-  
-  .sidebar-item-name {
-    flex-grow: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden; /* Celkový scrollbar nechceme */
+  flex-shrink: 0;
+}
 
-  
+.sidebar-title {
+  padding: 15px;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #495057;
+  /* border-bottom: 1px solid #dee2e6; */
+  flex-shrink: 0;
+}
+
+/* Kontejner pro vyhledávání */
+.sidebar-search-container {
+  padding: 10px 15px;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.sidebar-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.sidebar-search-input:focus {
+  outline: none;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.sidebar-search-input:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+/* Stavové zprávy */
+.sidebar-loading,
+.sidebar-error,
+.sidebar-empty {
+  padding: 15px;
+  color: #6c757d;
+  text-align: center;
+  font-style: italic;
+}
+.sidebar-error {
+  color: #dc3545;
+  font-style: normal;
+  font-weight: bold;
+}
+
+/* Seznam účtů */
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1; /* Vyplní zbytek místa */
+  overflow-y: auto; /* Scrollbar JEN pro seznam */
+  scrollbar-width: thin;
+  scrollbar-color: #ced4da #f8f9fa;
+}
+.sidebar-list::-webkit-scrollbar {
+  height: 5px;
+  width: 6px;
+}
+.sidebar-list::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+.sidebar-list::-webkit-scrollbar-thumb {
+  background-color: #ced4da;
+  border-radius: 10px;
+  border: 1px solid #f8f9fa;
+}
+
+.sidebar-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #e9ecef;
+  color: #212529;
+  transition: background-color 0.15s ease-in-out;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-item:hover {
+  background-color: #e9ecef;
+}
+
+/* Zvýraznění položky odpovídající aktivní záložce */
+.sidebar-item.selected-in-sidebar {
+  background-color: #cfe2ff; /* Světle modrá */
+  /* font-weight: 500; */ /* Může být moc výrazné */
+}
+
+.sidebar-item-name {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.heading-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.home-btn {
+  font-size: 1.2rem;
+  margin-right: 20px;
+  cursor: pointer;
+  transition: all 200ms linear;
+}
+
+.home-btn:hover {
+  scale: 1.1;
+}

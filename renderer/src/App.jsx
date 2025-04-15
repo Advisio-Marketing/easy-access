@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import AccountButton from './components/AccountButton';
-import Sidebar from './components/SideBar';
-import TabBar from './components/TabBar';
-import ContentPlaceholder from './components/ContentPlaceholder';
-import './assets/App.css';
+import React, { useState, useEffect, useCallback } from "react";
+import AccountButton from "./components/AccountButton";
+import Sidebar from "./components/SideBar";
+import TabBar from "./components/TabBar";
+import ContentPlaceholder from "./components/ContentPlaceholder";
+import "./assets/App.css";
+
 
 const DEFAULT_SIDEBAR_WIDTH = 250;
 const MIN_SIDEBAR_WIDTH = 150;
@@ -11,34 +12,38 @@ const MAX_SIDEBAR_WIDTH = 500;
 const TAB_BAR_HEIGHT = 40;
 
 function App() {
-  const [viewMode, setViewMode] = useState('initial');
+  const [viewMode, setViewMode] = useState("initial");
   const [accounts, setAccounts] = useState([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [errorLoadingAccounts, setErrorLoadingAccounts] = useState(null);
   const [openTabs, setOpenTabs] = useState([]);
   const [activeTabId, setActiveTabId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [prevSidebarWidth, setPrevSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
-    
+  const [prevSidebarWidth, setPrevSidebarWidth] = useState(
+    DEFAULT_SIDEBAR_WIDTH
+  );
 
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isResizing) return;
-      const newWidth = Math.min(Math.max(e.clientX, MIN_SIDEBAR_WIDTH), MAX_SIDEBAR_WIDTH);
+      const newWidth = Math.min(
+        Math.max(e.clientX, MIN_SIDEBAR_WIDTH),
+        MAX_SIDEBAR_WIDTH
+      );
       setSidebarWidth(newWidth);
     };
 
     const stopResizing = () => setIsResizing(false);
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', stopResizing);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", stopResizing);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', stopResizing);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", stopResizing);
     };
   }, [isResizing]);
 
@@ -46,32 +51,46 @@ function App() {
     const removeStatusListener = window.electronAPI.onTabStatusUpdate(
       ({ accountId, status, error, name }) => {
         setOpenTabs((currentTabs) => {
-          const existingTabIndex = currentTabs.findIndex((tab) => tab.id === accountId);
+          const existingTabIndex = currentTabs.findIndex(
+            (tab) => tab.id === accountId
+          );
           if (existingTabIndex > -1) {
             const newTabs = [...currentTabs];
-            newTabs[existingTabIndex] = { ...newTabs[existingTabIndex], status, error: error || null };
+            newTabs[existingTabIndex] = {
+              ...newTabs[existingTabIndex],
+              status,
+              error: error || null,
+            };
             return newTabs;
-          } else if (status !== 'error' && name) {
+          } else if (status !== "error" && name) {
             if (!currentTabs.some((tab) => tab.id === accountId)) {
-              return [...currentTabs, { id: accountId, name: name, status, error: null }];
+              return [
+                ...currentTabs,
+                { id: accountId, name: name, status, error: null },
+              ];
             }
           }
           return currentTabs;
         });
-        if (status === 'ready' && !activeTabId) {
+        if (status === "ready" && !activeTabId) {
           setActiveTabId(accountId);
         }
       }
     );
-    
 
-    const removeActivateListener = window.electronAPI.onActivateTab((accountId) => {
-      setActiveTabId(accountId);
-    });
+    const removeActivateListener = window.electronAPI.onActivateTab(
+      (accountId) => {
+        setActiveTabId(accountId);
+      }
+    );
 
-    const removeForceCloseListener = window.electronAPI.onForceCloseTab((accountId) => {
-      setOpenTabs((currentTabs) => currentTabs.filter((tab) => tab.id !== accountId));
-    });
+    const removeForceCloseListener = window.electronAPI.onForceCloseTab(
+      (accountId) => {
+        setOpenTabs((currentTabs) =>
+          currentTabs.filter((tab) => tab.id !== accountId)
+        );
+      }
+    );
 
     return () => {
       removeStatusListener();
@@ -90,15 +109,18 @@ function App() {
         const formattedList = list.map((item) => ({
           id: String(item.id),
           name: item.client_name || `Účet ${item.id}`,
+          client_country: item?.client_country
         }));
         setAccounts(formattedList);
-        setViewMode('main');
-        const clickedAccount = formattedList.find((acc) => acc.name.includes(accountName));
+        setViewMode("main");
+        const clickedAccount = formattedList.find((acc) =>
+          acc.name.includes(accountName)
+        );
         if (clickedAccount) {
           handleSidebarSelect(clickedAccount);
         }
       } else {
-        throw new Error('Neplatná data účtů.');
+        throw new Error("Neplatná data účtů.");
       }
     } catch (err) {
       setErrorLoadingAccounts(`Chyba: ${err.message}`);
@@ -118,11 +140,19 @@ function App() {
         setActiveTabId(account.id);
         setOpenTabs((prev) => [
           ...prev,
-          { id: account.id, name: account.name, status: 'loading', error: null },
+          {
+            id: account.id,
+            name: account.name,
+            status: "loading",
+            error: null,
+          },
         ]);
         const result = await window.electronAPI.selectAccount(account);
         if (!result.success) {
-          console.error(`Failed to initiate select for ${account.id}:`, result.error);
+          console.error(
+            `Failed to initiate select for ${account.id}:`,
+            result.error
+          );
         }
       }
     },
@@ -145,7 +175,10 @@ function App() {
       const remainingTabs = openTabs.filter((tab) => tab.id !== accountId);
       setOpenTabs(remainingTabs);
       if (activeTabId === accountId) {
-        const newActiveId = remainingTabs.length > 0 ? remainingTabs[remainingTabs.length - 1].id : null;
+        const newActiveId =
+          remainingTabs.length > 0
+            ? remainingTabs[remainingTabs.length - 1].id
+            : null;
         if (newActiveId) {
           window.electronAPI.switchTab(newActiveId);
         } else {
@@ -154,7 +187,10 @@ function App() {
       }
       const result = await window.electronAPI.closeTab(accountId);
       if (!result.success) {
-        console.error(`Failed to close tab ${accountId} in main process:`, result.error);
+        console.error(
+          `Failed to close tab ${accountId} in main process:`,
+          result.error
+        );
       }
     },
     [activeTabId, openTabs]
@@ -168,21 +204,58 @@ function App() {
     account.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (viewMode === 'initial') {
+  const handleDisabled = () => {
+    alert("Na této službě se pracuje.");
+  };
+
+  if (viewMode === "initial") {
     return (
-      <div className="app-container-initial">
+      <div
+        className={`app-container-initial ${
+          viewMode === "initial" ? "with-back-img" : null
+        }`}
+      >
         {errorLoadingAccounts && (
-          <div style={{ color: 'red', textAlign: 'center' }}>
+          <div style={{ color: "red", textAlign: "center" }}>
             <p>Chyba při načítání seznamu účtů:</p>
             <p>{errorLoadingAccounts}</p>
-            <button onClick={() => handleInitialButtonClick('Heureka')} style={{ marginTop: '10px' }}>
+            <button
+              onClick={() => handleInitialButtonClick("Heureka")}
+              style={{ marginTop: "10px" }}
+            >
               Zkusit znovu?
             </button>
           </div>
         )}
         {isLoadingAccounts && <p>Načítám...</p>}
         {!isLoadingAccounts && !errorLoadingAccounts && (
-          <AccountButton accountName="Heureka" onClick={handleInitialButtonClick} disabled={isLoadingAccounts} />
+          <div className="initial-btn-box">
+            <AccountButton
+              accountName="Heureka"
+              onClick={handleInitialButtonClick}
+              disabled={isLoadingAccounts}
+            />
+            <AccountButton
+              accountName="Glami"
+              onClick={handleDisabled}
+              disabled={isLoadingAccounts}
+            />
+            <AccountButton
+              accountName="Favi"
+              onClick={handleDisabled}
+              disabled={isLoadingAccounts}
+            />
+            <AccountButton
+              accountName="Biano"
+              onClick={handleDisabled}
+              disabled={isLoadingAccounts}
+            />
+            <AccountButton
+              accountName="Modio"
+              onClick={handleDisabled}
+              disabled={isLoadingAccounts}
+            />
+          </div>
         )}
       </div>
     );
@@ -201,8 +274,12 @@ function App() {
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         selectedAccountId={activeTabId}
+        setViewMode={setViewMode}
       />
-      <div className="sidebar-resizer" onMouseDown={() => setIsResizing(true)} />
+      {/* <div
+        className="sidebar-resizer"
+        onMouseDown={() => setIsResizing(true)}
+      /> */}
       <div className="main-content-wrapper">
         <TabBar
           tabs={openTabs}

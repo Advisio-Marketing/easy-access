@@ -1,12 +1,29 @@
 // src/renderer/src/components/Sidebar.jsx
-import React from 'react';
-import PropTypes from 'prop-types';
-import './Sidebar.css';
+import React from "react";
+import PropTypes from "prop-types";
+import "./Sidebar.css";
+import { FaHome } from "react-icons/fa";
 
-function Sidebar({ accounts, onSelect, width, isLoading, error, searchTerm, onSearchChange, selectedAccountId }) {
+function Sidebar({
+  accounts,
+  onSelect,
+  width,
+  isLoading,
+  error,
+  searchTerm,
+  onSearchChange,
+  selectedAccountId,
+  setViewMode,
+}) {
   return (
-    <div className="sidebar" style={{ width: `${width}px`, minWidth: `${width}px` }}>
-      <h2 className="sidebar-title">Účty</h2>
+    <div
+      className="sidebar"
+      style={{ width: `${width}px`, minWidth: `${width}px` }}
+    >
+      <div className="heading-box">
+        <h2 className="sidebar-title">Účty</h2>
+        <FaHome className="home-btn" onClick={() => setViewMode("initial")} />
+      </div>
 
       {/* --- Vyhledávací pole --- */}
       <div className="sidebar-search-container">
@@ -29,19 +46,21 @@ function Sidebar({ accounts, onSelect, width, isLoading, error, searchTerm, onSe
       {!isLoading && !error && (
         <ul className="sidebar-list">
           {accounts.length === 0 && searchTerm && (
-             <li className="sidebar-empty">Žádné účty neodpovídají hledání.</li>
+            <li className="sidebar-empty">Žádné účty neodpovídají hledání.</li>
           )}
-           {accounts.length === 0 && !searchTerm && (
-             <li className="sidebar-empty">Nenalezeny žádné účty.</li>
+          {accounts.length === 0 && !searchTerm && (
+            <li className="sidebar-empty">Nenalezeny žádné účty.</li>
           )}
-          {accounts.map(account => (
+          {accounts.map((account) => (
             <li
               key={account.id}
-              className={`sidebar-item ${account.id === selectedAccountId ? 'selected-in-sidebar' : ''}`}
+              className={`sidebar-item ${
+                account.id === selectedAccountId ? "selected-in-sidebar" : ""
+              }`}
               onClick={() => onSelect(account)}
-              title={account.name}
+              title={`${account.name} - ${account.client_country}`}
             >
-              <span className="sidebar-item-name">{account.name}</span>
+              <span className="sidebar-item-name">{account.name} - {account.client_country}</span>
             </li>
           ))}
         </ul>
@@ -51,10 +70,12 @@ function Sidebar({ accounts, onSelect, width, isLoading, error, searchTerm, onSe
 }
 
 Sidebar.propTypes = {
-  accounts: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-  })).isRequired,
+  accounts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
   onSelect: PropTypes.func.isRequired,
   width: PropTypes.number.isRequired,
   isLoading: PropTypes.bool.isRequired, // Zda se načítá *seznam* účtů

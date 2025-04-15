@@ -1,63 +1,69 @@
-/* src/renderer/src/assets/App.css */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 
 /* Reset a základní nastavení */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: "Noto Sans", sans-serif !important;
 }
 
-html, body, #root {
-  height: 100%; /* Zajistíme, aby root element vyplnil výšku */
-  overflow: hidden; /* Zabráníme scrollbaru na nejvyšší úrovni */
-}
-
-
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: #ffffff;
-  color: #212529; /* Základní barva textu */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-size: 14px; /* Můžeme nastavit základní velikost písma */
-}
-
-/* Kontejner pro úvodní obrazovku (pokud byste ji stále používali) */
-.app-container-initial {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100vw;
-  height: 100vh;
+html,
+body,
+#root {
+  height: 100%;
   overflow: hidden;
 }
 
-/* Kontejner pro hlavní layout aplikace (Sidebar + zbytek) */
-.app-container-main {
-   display: flex;
-   height: 100vh;
-   width: 100vw;
-   overflow: hidden;
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: #ffffff;
+  color: #212529;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-size: 14px;
 }
 
-/* Obalovač pro pravou část (Tab Bar + Content/Placeholder) */
-.main-content-wrapper {
-  flex-grow: 1; /* Zabere zbytek šířky vedle sidebaru */
+/* Pozadí aplikace pouze jednou */
+.with-back-img {
+  background-image: url("../../public/img/background.webp");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* Úvodní obrazovka */
+.app-container-initial {
   display: flex;
-  flex-direction: column; /* TabBar nahoře, Placeholder/Content dole */
-  height: 100vh; /* Vyplní celou výšku */
-  overflow: hidden; /* Zabráníme dvojitým scrollbarům */
-  background-color: #fff; /* Pozadí pod taby a placeholderem */
+  justify-content: start;
+  align-items: flex-start;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  padding-top: 10rem;
+  padding-left: 5rem;
 }
 
-/* Placeholder pro obsahovou část (styly jsou nyní v ContentPlaceholder.css) */
-/* Tento selektor zde už pravděpodobně není potřeba */
-/* .content-area { */
-   /* flex-grow: 1; */
-   /* background-color: #ffffff; */
-   /* position: relative; */
-/* } */
+/* Hlavní layout */
+.app-container-main {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.main-content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #fff;
+}
 
 .sidebar-resizer {
   width: 5px;
@@ -68,4 +74,42 @@ body {
 
 .sidebar-resizer:hover {
   background-color: #dee2e6;
+}
+
+/* Box s tlačítky */
+.initial-btn-box {
+  width: 20%;
+  padding-block: 1rem;
+  min-width: 350px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  /* margin-left: 4rem; */
+}
+
+/* Dekorace po stranách */
+.initial-btn-box::before,
+.initial-btn-box::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0; /* ✅ Zajistí přizpůsobení výšce obsahu */
+  width: 16px;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  display: block;
+}
+
+.initial-btn-box::before {
+  left: 0;
+  background-image: url("../../public/img/header-l.svg");
+}
+
+.initial-btn-box::after {
+  right: 0;
+  background-image: url("../../public/img/header-r.svg");
 }

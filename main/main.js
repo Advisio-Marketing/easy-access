@@ -232,7 +232,13 @@ async function createWindow() {
 
   mainWindow = new BaseWindow({
     width: 1200,
+    minWidth: 600,
+    icon: path.join(
+      __dirname,
+      "./renderer/public/img/logos/easy-access-logo.ico"
+    ),
     height: 800,
+    minHeight: 400,
     show: false,
     autoHideMenuBar: true,
     title: "Easy Access",
@@ -379,9 +385,12 @@ ipcMain.handle("show-main-layout", () => {
 ipcMain.handle("select-account", async (_event, accountInfo) => {
   const accountId = String(accountInfo.id);
   const accountName = accountInfo.name;
+  const clientCountry = accountInfo?.client_country?.toUpperCase?.() || "CZ";
+
   log.info(
-    `IPC: Request to open/select account ID: ${accountId} (${accountName})`
+    `IPC: Request to open/select account ID: ${accountId} (${accountName}), country: ${clientCountry}`
   );
+
   if (!mainWindow || mainWindow.isDestroyed()) {
     return { success: false, error: "Main window closed." };
   }
@@ -397,7 +406,7 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
   ) {
     log.info(`View for ${accountId} exists, switching.`);
     showView(accountId);
-    return { success: true, viewAlreadyExists: true, accountId: accountId };
+    return { success: true, viewAlreadyExists: true, accountId };
   }
 
   log.info(`Creating new view for ${accountId}...`);
@@ -408,36 +417,26 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
       name: accountName,
     });
   }
+
   try {
     const accountData = await fetchAccountCookies(accountId);
     const rrCookiesObject = accountData?.rr_cookies;
 
-    let targetUrl = "https://www.heureka.sk";
-    let targetDomain = ".heureka.sk";
-    const countryCode = rrCookiesObject?.HEU_COVER_country;
-    if (countryCode) {
-      log.info(
-        `Detected country code '${countryCode}' for account ${accountId}.`
-      );
-      if (countryCode.toUpperCase() === "CZ") {
-        targetUrl = "https://www.heureka.cz";
-        targetDomain = ".heureka.cz";
-      } else if (countryCode.toUpperCase() === "SK") {
-        /* zůstává .sk */
-      } else {
-        log.warn(
-          `Unknown country code '${countryCode}', using default: ${targetUrl}`
-        );
-      }
-    } else {
-      log.warn(
-        `'HEU_COVER_country' cookie not found for account ${accountId}, using default: ${targetUrl}`
-      );
-    }
+    // --- TLD a URL podle client_country ---
+    const tldMap = {
+      CZ: "cz",
+      SK: "sk",
+      HU: "hu",
+      RO: "ro",
+      PL: "pl",
+    };
+    const tld = tldMap[clientCountry] || "cz";
+    const targetUrl = `https://www.heureka.${tld}`;
+    const targetDomain = `.heureka.${tld}`;
     log.info(`Target URL set to: ${targetUrl}, Target Domain: ${targetDomain}`);
+    // --------------------------------------
 
     const partition = `persist:${accountId}`;
-    log.info(`Using session partition: ${partition}`);
     const newSession = session.fromPartition(partition);
     const newView = new WebContentsView({
       webPreferences: {
@@ -447,20 +446,15 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
       },
     });
 
-    const allCookiePromises = []; // Pro všechny cookies (API + Consent)
+    const allCookiePromises = [];
 
-    // Nastavení cookies z API
+    // --- Nastavení cookies z API ---
     if (rrCookiesObject && typeof rrCookiesObject === "object") {
-      log.info(
-        `Setting API cookies into session for ${accountId} (URL: ${targetUrl})...`
-      );
       const cookieNames = Object.keys(rrCookiesObject);
-      log.info(
-        `Found ${cookieNames.length} API cookies to set for ${accountId}.`
-      );
+      log.info(`Setting ${cookieNames.length} API cookies for ${accountId}`);
       cookieNames.forEach((name) => {
         const value = rrCookiesObject[name];
-        let httpOnly =
+        const httpOnly =
           name === "SESSID_PHP" ||
           name === "__cf_bm" ||
           name.startsWith("hgSCI");
@@ -481,17 +475,12 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
         );
       });
     } else {
-      log.warn(
-        `[${accountId}] No valid rr_cookies data found in API response to set.`
-      );
+      log.warn(`[${accountId}] No rr_cookies found in API response.`);
     }
 
-    // Nastavení Consent Cookies
-    log.info(
-      `Setting Consent cookies into session for ${accountId} (URL: ${targetUrl})...`
-    );
+    // --- Consent Cookies ---
     const consentCookieNames = Object.keys(consentCookies);
-    log.info(`Found ${consentCookieNames.length} Consent cookies to set.`);
+    log.info(`Setting ${consentCookieNames.length} Consent cookies`);
     consentCookieNames.forEach((name) => {
       const value = consentCookies[name];
       const details = {
@@ -502,7 +491,7 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
         path: "/",
         secure: true,
         httpOnly: false,
-      }; // Consent obvykle nejsou httpOnly
+      };
       allCookiePromises.push(
         newSession.cookies.set(details).catch((err) => {
           log.error(
@@ -514,15 +503,15 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
       );
     });
 
-    // Počkáme na dokončení VŠECH nastavování cookies
+    // --- Čekání na cookies ---
     const results = await Promise.all(allCookiePromises);
     log.info(
-      `[${accountId}] Finished setting ${
+      `[${accountId}] Successfully set ${
         results.filter((r) => r !== null).length
-      } cookies in total.`
+      } cookies.`
     );
 
-    // Uložení, zobrazení a načtení URL
+    // --- Uložení a načtení view ---
     webViews[accountId] = {
       view: newView,
       session: newSession,
@@ -542,10 +531,11 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
         name: accountName,
       });
     }
+
     return {
       success: true,
       viewAlreadyExists: false,
-      accountId: accountId,
+      accountId,
       name: accountName,
     };
   } catch (error) {
@@ -575,7 +565,6 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
     };
   }
 });
-
 ipcMain.handle("switch-tab", (_event, accountId) => {
   log.info(`IPC: Request to switch active tab to: ${accountId}`);
   if (!mainWindow || mainWindow.isDestroyed()) {
