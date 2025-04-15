@@ -1,0 +1,15 @@
+/* src/renderer/src/components/AccountButton.css */
+.account-button {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    transition: background-color 0.2s ease;
+  }
+  
+  .account-button:hover {
+    background-color: #e0e0e0;
+  }

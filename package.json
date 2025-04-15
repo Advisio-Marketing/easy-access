@@ -1,0 +1,62 @@
+{
+  "name": "easy-access",
+  "version": "1.0.0",
+  "description": "Internal tool Easy Access",
+  "// ----- DŮLEŽITÉ: Vstupní bod pro Electron -----": "",
+  "main": "main/main.js",
+  "private": true,
+  "scripts": {
+    "// ----- Vývojové skripty -----": "",
+    "dev:vite": "vite renderer --port 5173",
+    "dev:electron": "electron .",
+    "dev": "concurrently \"npm:dev:vite\" \"wait-on tcp:5173 && npm:dev:electron\"",
+    "// ----- Build skripty (pro electron-builder) -----": "",
+    "build:vite": "vite build renderer --outDir dist/renderer",
+    "build:electron": "electron-builder",
+    "build": "npm run build:vite && npm run build:electron",
+    "// ----- Spuštění produkční verze -----": "",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Your Name or Company",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "electron-log": "^5.1.5",
+    "electron-updater": "^6.2.1",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.9",
+    "electron-builder": "^24.13.3",
+    "vite": "^5.2.11",
+    "wait-on": "^7.2.0"
+  },
+  "// ----- Konfigurace pro Electron Builder (přidáme později) -----": "",
+  "build": {
+    "appId": "com.example.easyaccess",
+    "productName": "Easy Access",
+    "directories": {
+      "output": "dist/electron"
+    },
+    "files": [
+      "dist/renderer/**/*",
+      "main/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "resources/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "resources/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "resources/icon.png"
+    }
+  }
+}

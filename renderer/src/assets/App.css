@@ -1,0 +1,71 @@
+/* src/renderer/src/assets/App.css */
+
+/* Reset a základní nastavení */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%; /* Zajistíme, aby root element vyplnil výšku */
+  overflow: hidden; /* Zabráníme scrollbaru na nejvyšší úrovni */
+}
+
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #ffffff;
+  color: #212529; /* Základní barva textu */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-size: 14px; /* Můžeme nastavit základní velikost písma */
+}
+
+/* Kontejner pro úvodní obrazovku (pokud byste ji stále používali) */
+.app-container-initial {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Kontejner pro hlavní layout aplikace (Sidebar + zbytek) */
+.app-container-main {
+   display: flex;
+   height: 100vh;
+   width: 100vw;
+   overflow: hidden;
+}
+
+/* Obalovač pro pravou část (Tab Bar + Content/Placeholder) */
+.main-content-wrapper {
+  flex-grow: 1; /* Zabere zbytek šířky vedle sidebaru */
+  display: flex;
+  flex-direction: column; /* TabBar nahoře, Placeholder/Content dole */
+  height: 100vh; /* Vyplní celou výšku */
+  overflow: hidden; /* Zabráníme dvojitým scrollbarům */
+  background-color: #fff; /* Pozadí pod taby a placeholderem */
+}
+
+/* Placeholder pro obsahovou část (styly jsou nyní v ContentPlaceholder.css) */
+/* Tento selektor zde už pravděpodobně není potřeba */
+/* .content-area { */
+   /* flex-grow: 1; */
+   /* background-color: #ffffff; */
+   /* position: relative; */
+/* } */
+
+.sidebar-resizer {
+  width: 5px;
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 10;
+}
+
+.sidebar-resizer:hover {
+  background-color: #dee2e6;
+}
