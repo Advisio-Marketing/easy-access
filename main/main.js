@@ -267,7 +267,7 @@ async function createWindow() {
   mainWindow.contentView.addChildView(reactUiView);
   log.info("React UI WebContentsView added.");
 
-  // Přidání posluchače did-finish-load pro zajištění zobrazení okna, 
+  // Přidání posluchače did-finish-load pro zajištění zobrazení okna,
   // jakmile se načte obsah React UI.
   reactUiView.webContents.on("did-finish-load", () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -280,10 +280,8 @@ async function createWindow() {
   // --- Načtení React UI ---
   const viteDevServerUrl =
     process.env["ELECTRON_RENDERER_URL"] || "http://localhost:5173";
-  const prodIndexPath = path.join(
-    app.getAppPath().replace("app.asar", "app.asar.unpacked"),
-    "dist/renderer/index.html"
-  );
+  const prodIndexPath = path.join(__dirname, "../dist/renderer/index.html");
+
   try {
     if (is.dev) {
       await reactUiView.webContents.loadURL(viteDevServerUrl);

@@ -1,29 +1,26 @@
 // vite.config.js
 import { defineConfig } from 'vite'
-import path from 'path'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Kořenový adresář pro Vite (kde je index.html a src)
+
+  // Nastavení root adresáře, aby Vite věděl, že index.html a src jsou v /renderer
   root: path.resolve(__dirname, 'renderer'),
-  // Relativní cesty pro build, důležité pro Electron
+
+  // Base se často dává './' pro Electron, aby vše bylo relativní
   base: './',
-  // Kam Vite uloží build rendereru (relativně ke kořeni projektu)
+
   build: {
+    // Výstup půjde do dist/renderer
     outDir: path.resolve(__dirname, 'dist/renderer'),
     emptyOutDir: true,
   },
-  // Port pro dev server
+
   server: {
     port: 5173,
-    // Přidáno 'host: true', aby byl server dostupný i mimo localhost (pro Electron)
     host: true,
-    strictPort: true, // Zajistí, že se použije tento port
+    strictPort: true,
   },
-  // Optimalizace (může být potřeba později)
-  // optimizeDeps: {
-  //   include: ['electron-log', 'electron-updater'] // Pokud by byly problémy s require v rendereru
-  // }
 })
