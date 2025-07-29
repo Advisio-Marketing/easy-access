@@ -64,8 +64,25 @@
       "renderer/public/img/logos/*"
     ],
     "win": {
-      "target": "zip",
-      "icon": "renderer/public/img/logos/easy-access-logo.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "renderer/public/img/logos/easy-access-logo.ico",
+      "artifactName": "Easy Access ${version} ${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Easy Access Setup ${version} ${arch}.${ext}",
+      "shortcutName": "Easy Access",
+      "uninstallDisplayName": "Easy Access"
     },
     "mac": {
       "target": [
@@ -81,8 +98,18 @@
       "artifactName": "Easy Access ${version} ${arch}.${ext}"
     },
     "linux": {
-      "target": "AppImage",
-      "icon": "renderer/public/img/logos/easy-access-logo.png"
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "renderer/public/img/logos/easy-access-logo.icns",
+      "artifactName": "Easy Access ${version} ${arch}.${ext}"
     }
   }
 }
