@@ -2,7 +2,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import "./Sidebar.css";
-import { FaHome } from "react-icons/fa";
+import { FaHome, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 function Sidebar({
   accounts,
@@ -15,7 +15,22 @@ function Sidebar({
   selectedAccountId,
   setViewMode,
   onGoHome,
+  isCollapsed,
+  onToggleCollapse,
+  onStartResize,
+  isResizing,
 }) {
+  if (isCollapsed) {
+    return (
+      <div className="sidebar sidebar-collapsed" style={{ width: '40px', minWidth: '40px' }}>
+        <div className="sidebar-toggle-btn" onClick={onToggleCollapse}>
+          <FaChevronRight />
+        </div>
+        <div className="sidebar-resizer" onMouseDown={onStartResize}></div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="sidebar"
@@ -23,10 +38,15 @@ function Sidebar({
     >
       <div className="heading-box">
         <h2 className="sidebar-title">Účty</h2>
-        <FaHome
-          className="home-btn"
-          onClick={onGoHome} // <-- Použít novou prop onGoHome
-        />
+        <div className="sidebar-controls">
+          <FaHome
+            className="home-btn"
+            onClick={onGoHome}
+          />
+          <div className="sidebar-toggle-btn" onClick={onToggleCollapse}>
+            <FaChevronLeft />
+          </div>
+        </div>
       </div>
 
       {/* --- Vyhledávací pole --- */}
@@ -71,6 +91,12 @@ function Sidebar({
           ))}
         </ul>
       )}
+      
+      {/* Resizer */}
+      <div 
+        className={`sidebar-resizer ${isResizing ? 'resizer-active' : ''}`}
+        onMouseDown={onStartResize}
+      ></div>
     </div>
   );
 }
@@ -84,12 +110,16 @@ Sidebar.propTypes = {
   ).isRequired,
   onSelect: PropTypes.func.isRequired,
   width: PropTypes.number.isRequired,
-  isLoading: PropTypes.bool.isRequired, // Zda se načítá *seznam* účtů
+  isLoading: PropTypes.bool.isRequired,
   error: PropTypes.string,
   searchTerm: PropTypes.string.isRequired,
   onSearchChange: PropTypes.func.isRequired,
-  selectedAccountId: PropTypes.string, // ID účtu aktivního v tabech
-  onGoHome: PropTypes.func.isRequired, // <-- Přidat prop type
+  selectedAccountId: PropTypes.string,
+  onGoHome: PropTypes.func.isRequired,
+  isCollapsed: PropTypes.bool.isRequired,
+  onToggleCollapse: PropTypes.func.isRequired,
+  onStartResize: PropTypes.func.isRequired,
+  isResizing: PropTypes.bool.isRequired,
 };
 
 export default Sidebar;

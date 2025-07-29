@@ -1,0 +1,73 @@
+/* src/renderer/src/components/StyledButton.css */
+.styled-button {
+  display: inline-block;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.04688rem;
+  line-height: 0.9375rem;
+  padding: 15px 20px;
+  text-decoration: none;
+  -webkit-transition: all 0.5s;
+  -o-transition: all 0.5s;
+  transition: all 0.5s;
+  position: relative;
+}
+
+/* Primary variant (červená) */
+.styled-button--primary {
+  background-color: #e7302a;
+}
+
+.styled-button--primary:hover:not(:disabled) {
+  background-color: #c81c16;
+}
+
+/* Danger variant (tmavě červená) */
+.styled-button--danger {
+  background-color: #dc3545;
+}
+
+.styled-button--danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.styled-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.styled-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.styled-button.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: rgba(255, 255, 255, 0.8);
+  animation: spin 0.8s linear infinite;
+}
+
+.styled-button.loading {
+  color: transparent;
+}
+
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

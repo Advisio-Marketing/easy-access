@@ -12,6 +12,14 @@ const {
 const path = require("path");
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
+
+// Google Auth Manager - s error handling
+let GoogleAuthManager = null;
+try {
+  GoogleAuthManager = require("./google-auth-manager");
+} catch (error) {
+  log.error("Failed to load GoogleAuthManager:", error);
+}
 let is;
 try {
   ({ is } = require("@electron-toolkit/utils"));
@@ -56,6 +64,7 @@ let accountList = null; // Seznam účtů, načte se až na vyžádání
 let SIDEBAR_WIDTH = 250;
 let TAB_BAR_HEIGHT = 40;
 let isMainLayoutActive = false; // Začínáme s úvodní obrazovkou
+let googleAuthManager = null; // Google OAuth manager
 
 // --- Statické Consent Cookies ---
 const consentCookies = {
@@ -204,10 +213,11 @@ function updateMainLayout() {
         const isActive = id === activeWebViewId && isMainLayoutActive;
         if (isActive) {
           // Nastavíme bounds jen pro aktivní view v hlavním layoutu
+          const sidebarWidth = Math.max(SIDEBAR_WIDTH || 0, 0); // Ensure non-negative
           wvInfo.view.setBounds({
-            x: SIDEBAR_WIDTH,
+            x: sidebarWidth,
             y: TAB_BAR_HEIGHT,
-            width: windowWidth - SIDEBAR_WIDTH,
+            width: windowWidth - sidebarWidth,
             height: windowHeight - TAB_BAR_HEIGHT,
           });
         }
@@ -261,7 +271,7 @@ async function createWindow() {
       sandbox: !is.dev,
       contextIsolation: true,
       nodeIntegration: false,
-      // devTools: is.dev,
+      devTools: is.dev, // Povolíme devTools v dev módu
     },
   });
   mainWindow.contentView.addChildView(reactUiView);
@@ -304,14 +314,17 @@ async function createWindow() {
   }
   // -------------------------
 
-  // if (is.dev) {
-  //   try {
-  //     // Otevření DevTools pokud je aplikace v režimu vývoje
-  //     reactUiView.webContents.openDevTools({ mode: "detach" });
-  //   } catch (error) {
-  //     log.error("Error opening React UI DevTools:", error);
-  //   }
-  // }
+  // DevTools vypnuty pro lepší uživatelský zážitek
+  /* 
+  if (is.dev) {
+    try {
+      // Otevření DevTools pokud je aplikace v režimu vývoje
+      reactUiView.webContents.openDevTools({ mode: "detach" });
+    } catch (error) {
+      log.error("Error opening React UI DevTools:", error);
+    }
+  }
+  */
   log.info("createWindow function finished.");
 } // End of createWindow
 
@@ -360,6 +373,24 @@ function showView(accountId) {
 }
 
 // --- IPC Handlery ---
+ipcMain.handle("google-auth", async () => {
+  log.info("IPC: Google authentication requested.");
+  try {
+    if (!GoogleAuthManager) {
+      throw new Error("GoogleAuthManager not available");
+    }
+    if (!googleAuthManager) {
+      googleAuthManager = new GoogleAuthManager();
+    }
+    const result = await googleAuthManager.authenticate();
+    log.info("Google authentication successful:", result.userInfo.email);
+    return { success: true, userInfo: result.userInfo };
+  } catch (error) {
+    log.error("IPC: Google authentication failed:", error);
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle("fetch-account-list", async () => {
   log.info("IPC: React UI requested account list fetch.");
   if (accountList !== null) {
@@ -607,6 +638,13 @@ ipcMain.handle("reset-to-home", async () => {
   });
   webViews = {};
   activeWebViewId = null;
+  return { success: true };
+});
+
+ipcMain.handle("update-sidebar-width", (_event, width) => {
+  log.info(`IPC: Updating sidebar width to: ${width}`);
+  SIDEBAR_WIDTH = width;
+  updateMainLayout(); // Přepočítáme layout s novou šířkou
   return { success: true };
 });
 

@@ -4,6 +4,9 @@ const { contextBridge, ipcRenderer } = require("electron");
 console.log("Preload script loaded.");
 
 contextBridge.exposeInMainWorld("electronAPI", {
+  // Google Authentication
+  googleAuth: () => ipcRenderer.invoke("google-auth"),
+
   // Po kliknutí na úvodní tlačítko
   fetchAccountList: () => ipcRenderer.invoke("fetch-account-list"),
   showMainLayout: () => ipcRenderer.invoke("show-main-layout"),
@@ -19,6 +22,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   closeTab: (accountId) => ipcRenderer.invoke("close-tab", accountId),
 
   resetToHome: () => ipcRenderer.invoke("reset-to-home"),
+
+  // Sidebar resizing
+  updateSidebarWidth: (width) =>
+    ipcRenderer.invoke("update-sidebar-width", width),
 
   // Listenery pro zprávy z Main procesu
   onTabStatusUpdate: (callback) => {

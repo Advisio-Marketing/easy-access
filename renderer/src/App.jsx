@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
+import LoginScreen from "./components/LoginScreen";
 import AccountButton from "./components/AccountButton";
+import StyledButton from "./components/StyledButton";
 import Sidebar from "./components/SideBar";
 import TabBar from "./components/TabBar";
 import ContentPlaceholder from "./components/ContentPlaceholder";
@@ -11,7 +13,8 @@ const MAX_SIDEBAR_WIDTH = 500;
 const TAB_BAR_HEIGHT = 40;
 
 function App() {
-  const [viewMode, setViewMode] = useState("initial");
+  const [viewMode, setViewMode] = useState("login");
+  const [userInfo, setUserInfo] = useState(null); // Informace o přihlášeném uživateli
   const [accounts, setAccounts] = useState([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [errorLoadingAccounts, setErrorLoadingAccounts] = useState(null);
@@ -28,14 +31,45 @@ function App() {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isResizing) return;
-      const newWidth = Math.min(
-        Math.max(e.clientX, MIN_SIDEBAR_WIDTH),
-        MAX_SIDEBAR_WIDTH
-      );
-      setSidebarWidth(newWidth);
+      
+      // Při collapse stavu umožnit expand při tažení doprava
+      if (isSidebarCollapsed && e.clientX > 50) {
+        setIsSidebarCollapsed(false);
+        const newWidth = Math.max(e.clientX, MIN_SIDEBAR_WIDTH);
+        setSidebarWidth(newWidth);
+        
+        // Poslat novou šířku do main procesu
+        window.electronAPI.updateSidebarWidth(newWidth);
+        return;
+      }
+      
+      // Normální resizing
+      if (!isSidebarCollapsed) {
+        const newWidth = Math.min(
+          Math.max(e.clientX, MIN_SIDEBAR_WIDTH),
+          MAX_SIDEBAR_WIDTH
+        );
+        setSidebarWidth(newWidth);
+        
+        // Poslat novou šířku do main procesu
+        window.electronAPI.updateSidebarWidth(newWidth);
+        
+        // Auto-collapse při tažení doleva pod minimum
+        if (e.clientX < MIN_SIDEBAR_WIDTH / 2) {
+          setIsSidebarCollapsed(true);
+        }
+      }
     };
 
-    const stopResizing = () => setIsResizing(false);
+    const stopResizing = () => {
+      setIsResizing(false);
+      // Odebrání třídy z body pro col-resize cursor
+      document.body.classList.remove('no-select');
+    };
+
+    if (isResizing) {
+      document.body.classList.add('no-select');
+    }
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", stopResizing);
@@ -43,8 +77,9 @@ function App() {
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", stopResizing);
+      document.body.classList.remove('no-select');
     };
-  }, [isResizing]);
+  }, [isResizing, isSidebarCollapsed]);
 
   useEffect(() => {
     const removeStatusListener = window.electronAPI.onTabStatusUpdate(
@@ -98,6 +133,13 @@ function App() {
     };
   }, [activeTabId]);
 
+  const handleGoogleLogin = useCallback((userInfo) => {
+    // Google přihlášení bylo úspěšné, přejdeme na rozcestník
+    console.log("Google login successful for user:", userInfo);
+    setUserInfo(userInfo); // Uložíme informace o uživateli
+    setViewMode("initial");
+  }, []);
+
   const handleInitialButtonClick = useCallback(async (accountName) => {
     setIsLoadingAccounts(true);
     setErrorLoadingAccounts(null);
@@ -112,6 +154,10 @@ function App() {
         }));
         setAccounts(formattedList);
         setViewMode("main");
+        
+        // Inicializovat sidebar width v main procesu
+        window.electronAPI.updateSidebarWidth(sidebarWidth);
+        
         const clickedAccount = formattedList.find((acc) =>
           acc.name.includes(accountName)
         );
@@ -126,6 +172,25 @@ function App() {
     } finally {
       setIsLoadingAccounts(false);
     }
+  }, []);
+
+  const handleToggleCollapse = useCallback(() => {
+    if (isSidebarCollapsed) {
+      // Expand sidebar - obnovit předchozí šířku
+      setIsSidebarCollapsed(false);
+      setSidebarWidth(prevSidebarWidth);
+      window.electronAPI.updateSidebarWidth(prevSidebarWidth);
+    } else {
+      // Collapse sidebar - uložit aktuální šířku
+      setPrevSidebarWidth(sidebarWidth);
+      setIsSidebarCollapsed(true);
+      window.electronAPI.updateSidebarWidth(40); // Collapsed = 40px width
+    }
+  }, [isSidebarCollapsed, sidebarWidth, prevSidebarWidth]);
+
+  const handleStartResize = useCallback((e) => {
+    e.preventDefault();
+    setIsResizing(true);
   }, []);
 
   const handleSidebarSelect = useCallback(
@@ -224,6 +289,19 @@ function App() {
     // Není potřeba volat showMainLayout zde, protože přecházíme na 'initial'
   }, []); // Závislosti jsou prázdné, protože funkce nemění své chování
 
+  const handleLogout = useCallback(() => {
+    console.log("Logging out user...");
+    setUserInfo(null);
+    setAccounts([]);
+    setOpenTabs([]);
+    setActiveTabId(null);
+    setViewMode("login");
+    // Zavoláme reset hlavního procesu
+    window.electronAPI.resetToHome().catch(error => {
+      console.error("Error during logout reset:", error);
+    });
+  }, []);
+
   const handleSearchChange = useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
@@ -236,6 +314,10 @@ function App() {
     alert("Na této službě se pracuje.");
   };
 
+  if (viewMode === "login") {
+    return <LoginScreen onLogin={handleGoogleLogin} />;
+  }
+
   if (viewMode === "initial") {
     return (
       <div
@@ -243,6 +325,24 @@ function App() {
           viewMode === "initial" ? "with-back-img" : null
         }`}
       >
+        {/* Header s tlačítkem pro odhlášení */}
+        <div className="initial-header">
+          {userInfo && (
+            <div className="user-info">
+              <span className="user-name">
+                {userInfo.name} ({userInfo.email})
+              </span>
+              <StyledButton 
+                onClick={handleLogout}
+                variant="danger"
+                title="Odhlásit se"
+              >
+                Odhlásit
+              </StyledButton>
+            </div>
+          )}
+        </div>
+
         {errorLoadingAccounts && (
           <div style={{ color: "red", textAlign: "center" }}>
             <p>Chyba při načítání seznamu účtů:</p>
@@ -255,33 +355,33 @@ function App() {
             </button>
           </div>
         )}
-        {isLoadingAccounts && <p>Načítám...</p>}
-        {!isLoadingAccounts && !errorLoadingAccounts && (
+        {!errorLoadingAccounts && (
           <div className="initial-btn-box">
             <AccountButton
               accountName="Heureka"
               onClick={handleInitialButtonClick}
               disabled={isLoadingAccounts}
+              loading={isLoadingAccounts}
             />
             <AccountButton
               accountName="Glami"
               onClick={handleDisabled}
-              disabled={isLoadingAccounts}
+              disabled={true}
             />
             <AccountButton
               accountName="Favi"
               onClick={handleDisabled}
-              disabled={isLoadingAccounts}
+              disabled={true}
             />
             <AccountButton
               accountName="Biano"
               onClick={handleDisabled}
-              disabled={isLoadingAccounts}
+              disabled={true}
             />
             <AccountButton
               accountName="Modio"
               onClick={handleDisabled}
-              disabled={isLoadingAccounts}
+              disabled={true}
             />
           </div>
         )}
@@ -292,7 +392,7 @@ function App() {
   const activeTabInfo = openTabs.find((tab) => tab.id === activeTabId);
 
   return (
-    <div className="app-container-main">
+    <div className={`app-container-main ${isResizing ? 'resizing' : ''}`}>
       <Sidebar
         accounts={filteredAccounts}
         onSelect={handleSidebarSelect}
@@ -303,13 +403,13 @@ function App() {
         onSearchChange={handleSearchChange}
         selectedAccountId={activeTabId}
         setViewMode={setViewMode}
-        onGoHome={handleGoHome} // <-- Přidat novou prop
+        onGoHome={handleGoHome}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleCollapse}
+        onStartResize={handleStartResize}
+        isResizing={isResizing}
       />
-      {/* <div
-        className="sidebar-resizer"
-        onMouseDown={() => setIsResizing(true)}
-      /> */}
-      <div className="main-content-wrapper">
+      <div className={`main-content-wrapper ${isResizing ? 'resizing' : ''}`}>
         <TabBar
           tabs={openTabs}
           activeTabId={activeTabId}

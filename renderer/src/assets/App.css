@@ -28,6 +28,52 @@ body {
   font-size: 14px;
 }
 
+/* Globální styl pro resizing */
+body.no-select {
+  user-select: none !important;
+  cursor: col-resize !important;
+}
+
+/* Univerzální zakázání pointer events během resizingu */
+body.no-select *,
+body.no-select webview,
+body.no-select iframe,
+body.no-select embed,
+body.no-select object {
+  pointer-events: none !important;
+}
+
+/* Povolení pointer events pro sidebar během resizingu */
+body.no-select .sidebar,
+body.no-select .sidebar *,
+body.no-select .sidebar-resizer {
+  pointer-events: auto !important;
+}
+
+/* Zakázání pointer events pro webview/iframe během resizingu */
+body.no-select webview,
+body.no-select iframe,
+body.no-select embed,
+body.no-select object {
+  pointer-events: none !important;
+}
+
+/* Zakázání pointer events pro celý obsah během resizingu */
+.main-content-wrapper.resizing,
+.main-content-wrapper.resizing * {
+  pointer-events: none !important;
+}
+
+/* Globální zakázání pointer events během resizingu - silnější pravidlo */
+.app-container-main.resizing webview,
+.app-container-main.resizing iframe,
+.app-container-main.resizing embed,
+.app-container-main.resizing object,
+.app-container-main.resizing .main-content-wrapper,
+.app-container-main.resizing .main-content-wrapper * {
+  pointer-events: none !important;
+}
+
 /* Pozadí aplikace pouze jednou */
 .with-back-img {
   background-image: url("/img/background.webp");
@@ -63,17 +109,6 @@ body {
   height: 100vh;
   overflow: hidden;
   background-color: #fff;
-}
-
-.sidebar-resizer {
-  width: 5px;
-  cursor: col-resize;
-  background-color: transparent;
-  z-index: 10;
-}
-
-.sidebar-resizer:hover {
-  background-color: #dee2e6;
 }
 
 /* Box s tlačítky */
@@ -112,4 +147,28 @@ body {
 .initial-btn-box::after {
   right: 0;
   background-image: url("/img/header-r.svg");
+}
+
+/* Header pro úvodní obrazovku */
+.initial-header {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 0.75rem 1.25rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.user-name {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
 }

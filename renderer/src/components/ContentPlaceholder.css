@@ -1,37 +1,51 @@
 /* src/renderer/src/components/ContentPlaceholder.css */
 .content-placeholder {
-    flex-grow: 1; /* Vyplní dostupný prostor pod tab barem */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-    text-align: center;
-    font-size: 1.1em;
-    color: #6c757d; /* Šedá barva */
-    background-color: #f1f3f5; /* Velmi světlé pozadí, aby bylo vidět, že je to placeholder */
-    overflow-y: auto; /* Umožní rolování, pokud je zpráva dlouhá */
-    line-height: 1.6;
-  }
-  
-  .content-placeholder.status-loading::before {
-    content: "⏳"; /* Nebo jiný indikátor */
-    margin-right: 10px;
-    font-size: 1.5em;
-    /* Můžeme přidat animaci */
-  }
-  
-  .content-placeholder.status-error {
-    color: #dc3545; /* Červená pro chybu */
-    white-space: pre-wrap; /* Zachová zalomení řádků v chybové zprávě */
-    justify-content: flex-start; /* Zarovnání nahoru pro delší chyby */
-    align-items: flex-start;
-  }
-  .content-placeholder.status-error::before {
-    content: "⚠️";
-    margin-right: 10px;
-    font-size: 1.5em;
-    color: inherit;
-  }
-  
-  /* Pokud nechceme zobrazit nic, když je tab ready (vrátí null z komponenty),
+  flex-grow: 1; /* Vyplní dostupný prostor pod tab barem */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  text-align: center;
+  font-size: 1.1em;
+  color: #6c757d; /* Šedá barva */
+  background-color: #f1f3f5; /* Velmi světlé pozadí, aby bylo vidět, že je to placeholder */
+  overflow-y: auto; /* Umožní rolování, pokud je zpráva dlouhá */
+  line-height: 1.6;
+}
+
+.content-placeholder.status-loading::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(108, 117, 125, 0.3);
+  border-radius: 50%;
+  border-top-color: #6c757d;
+  animation: content-spinner 0.8s linear infinite;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+.content-placeholder.status-error {
+  color: #dc3545; /* Červená pro chybu */
+  white-space: pre-wrap; /* Zachová zalomení řádků v chybové zprávě */
+  justify-content: flex-start; /* Zarovnání nahoru pro delší chyby */
+  align-items: flex-start;
+}
+.content-placeholder.status-error::before {
+  content: "⚠️";
+  margin-right: 10px;
+  font-size: 1.5em;
+  color: inherit;
+}
+
+/* Pokud nechceme zobrazit nic, když je tab ready (vrátí null z komponenty),
      tak žádný specifický styl pro status-ready nepotřebujeme. */
+
+@keyframes content-spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
