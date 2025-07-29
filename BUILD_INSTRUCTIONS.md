@@ -11,11 +11,14 @@ Tento projekt obsahuje GitHub Actions workflow, který automaticky postaví apli
 ### Jak spustit build:
 
 #### 1. Automatické spuštění
+
 Build se spustí automaticky při:
+
 - Push do `master` nebo `main` větve
 - Vytvoření Pull Requestu
 
 #### 2. Manuální spuštění
+
 1. Jdi na GitHub do sekce **Actions**
 2. Vyber workflow **"Build Easy Access"**
 3. Klikni na **"Run workflow"**
@@ -26,7 +29,7 @@ Build se spustí automaticky při:
 Po dokončení buildu najdeš soubory v sekci **Artifacts**:
 
 - **easy-access-macos** - DMG soubory pro Mac
-- **easy-access-windows** - EXE/ZIP soubory pro Windows  
+- **easy-access-windows** - EXE/ZIP soubory pro Windows
 - **easy-access-linux** - AppImage/DEB soubory pro Linux
 
 ### Poznámky:
@@ -38,6 +41,7 @@ Po dokončení buildu najdeš soubory v sekci **Artifacts**:
 ### Troubleshooting:
 
 Pokud build selže:
+
 1. Zkontroluj logs v GitHub Actions
 2. Ujisti se, že jsou všechny dependencies v `package.json`
 3. Ověř, že build funguje lokálně: `npm run build:mac`
@@ -51,7 +55,7 @@ npm run build:mac
 # Windows (na Windows nebo přes GitHub Actions)
 npm run build:win
 
-# Linux (na Linux nebo přes GitHub Actions)  
+# Linux (na Linux nebo přes GitHub Actions)
 npm run build:linux
 
 # Všechny platformy najednou
