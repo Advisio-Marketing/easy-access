@@ -74,13 +74,12 @@ const consentCookies = {
   "euconsent-v2":
     "CQP2yAAQP2yAAAHABBENBkFsAP_gAEPgAATIJ1QPgAFQAMAA0ACAAFQAMAAcABAACQAFoAMgAaAA6AB6AEUAI4ASQAmABQACoAFsAL4AZQA0QBsAG2AQYBCACIAEUAI4ATQAnQBPgCkAFaAMMAaQA5AB4gD9AIGAQiAjgCOgFIAKaAXyA_4EAAI1AR0AmkBSACpAFXQLLAswBbgC4QFzALzAYyBAUCBAEZgJsATqBOuA6ABUADgAIAASAAyABoAEcAJgAUAA0ACEAEQAI4ATQArQBhgDkAH6AQiAjgCOgH_AUgAqQBbgC5gF5gTYAnKBOsAA.f_wACHwAAAAA",
 };
-
 // -----------------------------
 
 // --- API Funkce ---
 async function fetchAccountList() {
   log.info("Attempting to fetch account list from API...");
-  const requestUrl = "https://app.advisio.cz/api/system-list/heureka/"; // HTTPS
+  const requestUrl = "https://app.advisio.cz/api/system-list/heureka/";
   const requestOptions = { method: "GET", url: requestUrl, timeout: 15000 };
   return new Promise((resolve, reject) => {
     const request = net.request(requestOptions);
@@ -119,23 +118,18 @@ async function fetchAccountList() {
           reject(new Error(`Failed to parse account list JSON: ${e.message}`));
         }
       });
-      response.on("error", (error) => {
-        log.error(`API account list stream error: ${error.message}`);
-        reject(error);
-      });
     });
     request.on("error", (error) => {
       log.error(`API account list request error: ${error.message}`);
       reject(error);
     });
-    log.info("Sending account list request (without custom headers)...");
     request.end();
   });
 }
 
 async function fetchAccountCookies(accountId) {
   log.info(`Attempting to fetch cookies for account ID: ${accountId}...`);
-  const requestUrl = `https://app.advisio.cz/api/system-get/heureka/${accountId}/`; // HTTPS
+  const requestUrl = `https://app.advisio.cz/api/system-get/heureka/${accountId}/`;
   const requestOptions = { method: "GET", url: requestUrl, timeout: 15000 };
   return new Promise((resolve, reject) => {
     const request = net.request(requestOptions);
@@ -173,20 +167,11 @@ async function fetchAccountCookies(accountId) {
           reject(e);
         }
       });
-      response.on("error", (error) => {
-        log.error(
-          `API cookies stream error for ${accountId}: ${error.message}`
-        );
-        reject(error);
-      });
     });
     request.on("error", (error) => {
       log.error(`API cookies request error for ${accountId}: ${error.message}`);
       reject(error);
     });
-    log.info(
-      `Sending cookies request for ${accountId} (without custom headers)...`
-    );
     request.end();
   });
 }
@@ -197,7 +182,6 @@ function updateMainLayout() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   try {
     const [windowWidth, windowHeight] = mainWindow.getContentSize();
-    // React UI vždy zabírá celé okno
     if (reactUiView && !reactUiView.webContents.isDestroyed()) {
       reactUiView.setBounds({
         x: 0,
@@ -206,14 +190,12 @@ function updateMainLayout() {
         height: windowHeight,
       });
     }
-    // Aktivní Web View (Content) se kreslí nad React UI vymezenou oblast
     Object.keys(webViews).forEach((id) => {
       const wvInfo = webViews[id];
       if (wvInfo?.view && !wvInfo.view.webContents.isDestroyed()) {
         const isActive = id === activeWebViewId && isMainLayoutActive;
         if (isActive) {
-          // Nastavíme bounds jen pro aktivní view v hlavním layoutu
-          const sidebarWidth = Math.max(SIDEBAR_WIDTH || 0, 0); // Ensure non-negative
+          const sidebarWidth = Math.max(SIDEBAR_WIDTH || 0, 0);
           wvInfo.view.setBounds({
             x: sidebarWidth,
             y: TAB_BAR_HEIGHT,
@@ -236,7 +218,6 @@ async function createWindow() {
       optimizer.watchWindowShortcuts(window);
     });
   }
-
   mainWindow = new BaseWindow({
     width: 1200,
     minWidth: 600,
@@ -251,12 +232,8 @@ async function createWindow() {
     title: "Easy Access",
     backgroundColor: "#ffffff",
   });
-
-  // Odstraněna původní logika ready-to-show,
-  // místo toho bude okno zobrazeno, až se načte obsah React UI.
   mainWindow.on("resize", updateMainLayout);
   mainWindow.on("closed", () => {
-    log.info("Main window closed.");
     webViews = {};
     activeWebViewId = null;
     mainWindow = null;
@@ -264,21 +241,17 @@ async function createWindow() {
     isMainLayoutActive = false;
     accountList = null;
   });
-
   reactUiView = new WebContentsView({
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"), // Správná cesta k preload.js
+      preload: path.join(__dirname, "preload.js"),
       sandbox: !is.dev,
       contextIsolation: true,
       nodeIntegration: false,
-      devTools: is.dev, // Povolíme devTools v dev módu
+      devTools: is.dev,
     },
   });
   mainWindow.contentView.addChildView(reactUiView);
   log.info("React UI WebContentsView added.");
-
-  // Přidání posluchače did-finish-load pro zajištění zobrazení okna,
-  // jakmile se načte obsah React UI.
   reactUiView.webContents.on("did-finish-load", () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.show();
@@ -286,12 +259,9 @@ async function createWindow() {
       updateMainLayout();
     }
   });
-
-  // --- Načtení React UI ---
   const viteDevServerUrl =
     process.env["ELECTRON_RENDERER_URL"] || "http://localhost:5173";
   const prodIndexPath = path.join(__dirname, "../dist/renderer/index.html");
-
   try {
     if (is.dev) {
       await reactUiView.webContents.loadURL(viteDevServerUrl);
@@ -312,21 +282,8 @@ async function createWindow() {
       );
     } catch {}
   }
-  // -------------------------
-
-  // DevTools vypnuty pro lepší uživatelský zážitek
-  /* 
-  if (is.dev) {
-    try {
-      // Otevření DevTools pokud je aplikace v režimu vývoje
-      reactUiView.webContents.openDevTools({ mode: "detach" });
-    } catch (error) {
-      log.error("Error opening React UI DevTools:", error);
-    }
-  }
-  */
   log.info("createWindow function finished.");
-} // End of createWindow
+}
 
 /** Zobrazí/Skryje WebViews podle activeWebViewId */
 function showView(accountId) {
@@ -382,11 +339,25 @@ ipcMain.handle("google-auth", async () => {
     if (!googleAuthManager) {
       googleAuthManager = new GoogleAuthManager();
     }
-    const result = await googleAuthManager.authenticate();
+    const result = await googleAuthManager.getAuthenticatedClient();
     log.info("Google authentication successful:", result.userInfo.email);
     return { success: true, userInfo: result.userInfo };
   } catch (error) {
     log.error("IPC: Google authentication failed:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("google-logout", async () => {
+  log.info("IPC: Google logout requested.");
+  try {
+    if (googleAuthManager) {
+      await googleAuthManager.logout();
+      return { success: true };
+    }
+    return { success: false, error: "Auth manager not initialized." };
+  } catch (error) {
+    log.error("IPC: Google logout failed:", error);
     return { success: false, error: error.message };
   }
 });
@@ -415,6 +386,30 @@ ipcMain.handle("show-main-layout", () => {
     updateMainLayout();
   }
   return { success: true };
+});
+
+ipcMain.handle("refresh-active-tab", async (_event, accountId) => {
+  if (!accountId) {
+    log.warn("IPC: Refresh requested for null accountId.");
+    return { success: false, error: "No account ID provided." };
+  }
+  log.info(`IPC: Request to refresh tab: ${accountId}`);
+  const viewInfo = webViews[accountId];
+  if (viewInfo && viewInfo.view && !viewInfo.view.webContents.isDestroyed()) {
+    try {
+      viewInfo.view.webContents.reload();
+      log.info(`Tab ${accountId} reloaded successfully.`);
+      return { success: true };
+    } catch (error) {
+      log.error(`Failed to reload tab ${accountId}:`, error);
+      return { success: false, error: error.message };
+    }
+  } else {
+    log.warn(
+      `IPC: Cannot refresh non-existent or destroyed view: ${accountId}`
+    );
+    return { success: false, error: "View not found or has been destroyed." };
+  }
 });
 
 ipcMain.handle("select-account", async (_event, accountInfo) => {
@@ -456,8 +451,6 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
   try {
     const accountData = await fetchAccountCookies(accountId);
     const rrCookiesObject = accountData?.rr_cookies;
-
-    // --- TLD a URL podle client_country ---
     const tldMap = {
       CZ: "cz",
       SK: "sk",
@@ -468,9 +461,6 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
     const tld = tldMap[clientCountry] || "cz";
     const targetUrl = `https://www.heureka.${tld}`;
     const targetDomain = `.heureka.${tld}`;
-    log.info(`Target URL set to: ${targetUrl}, Target Domain: ${targetDomain}`);
-    // --------------------------------------
-
     const partition = `persist:${accountId}`;
     const newSession = session.fromPartition(partition);
     const newView = new WebContentsView({
@@ -481,9 +471,37 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
       },
     });
 
-    const allCookiePromises = [];
+    // --- TATO ČÁST ZAJIŠŤUJE FUNKČNOST ---
+    const webContents = newView.webContents;
+    const sendStatus = (status, error = null) => {
+      if (reactUiView && !reactUiView.webContents.isDestroyed()) {
+        reactUiView.webContents.send("tab-status-update", {
+          accountId,
+          status,
+          error,
+          name: accountName,
+        });
+      }
+    };
+    webContents.on(
+      "did-start-navigation",
+      (event, url, isInPlace, isMainFrame) => {
+        if (isMainFrame) sendStatus("loading");
+      }
+    );
+    webContents.on("did-finish-load", () => sendStatus("ready"));
+    webContents.on(
+      "did-fail-load",
+      (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+        if (isMainFrame && errorCode !== -3) {
+          // Ignorujeme chybu ERR_ABORTED
+          sendStatus("error", errorDescription || `Error code: ${errorCode}`);
+        }
+      }
+    );
+    // --- KONEC KLÍČOVÉ ČÁSTI ---
 
-    // --- Nastavení cookies z API ---
+    const allCookiePromises = [];
     if (rrCookiesObject && typeof rrCookiesObject === "object") {
       const cookieNames = Object.keys(rrCookiesObject);
       log.info(`Setting ${cookieNames.length} API cookies for ${accountId}`);
@@ -513,7 +531,6 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
       log.warn(`[${accountId}] No rr_cookies found in API response.`);
     }
 
-    // --- Consent Cookies ---
     const consentCookieNames = Object.keys(consentCookies);
     log.info(`Setting ${consentCookieNames.length} Consent cookies`);
     consentCookieNames.forEach((name) => {
@@ -538,15 +555,8 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
       );
     });
 
-    // --- Čekání na cookies ---
-    const results = await Promise.all(allCookiePromises);
-    log.info(
-      `[${accountId}] Successfully set ${
-        results.filter((r) => r !== null).length
-      } cookies.`
-    );
+    await Promise.all(allCookiePromises);
 
-    // --- Uložení a načtení view ---
     webViews[accountId] = {
       view: newView,
       session: newSession,
@@ -600,6 +610,7 @@ ipcMain.handle("select-account", async (_event, accountInfo) => {
     };
   }
 });
+
 ipcMain.handle("switch-tab", (_event, accountId) => {
   log.info(`IPC: Request to switch active tab to: ${accountId}`);
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -644,7 +655,7 @@ ipcMain.handle("reset-to-home", async () => {
 ipcMain.handle("update-sidebar-width", (_event, width) => {
   log.info(`IPC: Updating sidebar width to: ${width}`);
   SIDEBAR_WIDTH = width;
-  updateMainLayout(); // Přepočítáme layout s novou šířkou
+  updateMainLayout();
   return { success: true };
 });
 
@@ -701,71 +712,24 @@ ipcMain.handle("close-tab", async (_event, accountId) => {
 // --- Application Lifecycle & Auto Update ---
 app.whenReady().then(async () => {
   log.info("App is ready.");
-  // if(electronApp?.setAppUserModelId) electronApp.setAppUserModelId('com.electron.easyaccess');
-
-  accountList = null; // Resetujeme při startu, načte se až na vyžádání
-
-  log.info("Proceeding to create window...");
   createWindow().catch((error) => {
     log.error("Unhandled error during createWindow execution:", error);
   });
-
-  log.info("Checking for updates after window creation...");
-  // autoUpdater.checkForUpdatesAndNotify(); // Odkomentujte, až budete mít nastavený server
-
-  app.on("activate", () => {
-    if (mainWindow === null) {
-      log.info("App activated, creating window...");
-      createWindow().catch((error) => {
-        log.error(
-          "Unhandled error during createWindow execution on activate:",
-          error
-        );
-      });
-    }
-  });
+  // autoUpdater.checkForUpdatesAndNotify();
 });
 
-// --- AutoUpdater Event Listeners ---
-autoUpdater.on("checking-for-update", () => {
-  log.info("Checking for update...");
-});
-autoUpdater.on("update-available", (info) => {
-  log.info("Update available.", info);
-});
-autoUpdater.on("update-not-available", (info) => {
-  log.info("Update not available.", info);
-});
-autoUpdater.on("error", (err) => {
-  log.error("Error in auto-updater. " + err);
-});
-autoUpdater.on("download-progress", (p) => {
-  log.info(`Update Downloaded ${Math.round(p.percent)}%`);
-});
-autoUpdater.on("update-downloaded", (info) => {
-  log.info("Update downloaded; prompting user.", info);
-  dialog
-    .showMessageBox({
-      type: "info",
-      buttons: ["Restartovat", "Později"],
-      defaultId: 0,
-      cancelId: 1,
-      title: "Aktualizace Easy Access",
-      message: "Nová verze je připravena.",
-      detail: "Restartujte aplikaci pro instalaci aktualizace.",
-    })
-    .then(({ response }) => {
-      if (response === 0) {
-        log.info("User chose to restart.");
-        autoUpdater.quitAndInstall();
-      } else {
-        log.info("User chose to install later.");
-      }
+app.on("activate", () => {
+  if (mainWindow === null) {
+    log.info("App activated, creating window...");
+    createWindow().catch((error) => {
+      log.error(
+        "Unhandled error during createWindow execution on activate:",
+        error
+      );
     });
+  }
 });
-// ----------------------------------
 
-// --- Ostatní Lifecycle Handlery ---
 app.on("window-all-closed", () => {
   log.info("All windows closed.");
   if (process.platform !== "darwin") {
@@ -773,6 +737,7 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
 process.on("unhandledRejection", (reason, promise) => {
   log.error("Unhandled Rejection at:", promise, "reason:", reason);
 });

@@ -14,7 +14,7 @@ const TAB_BAR_HEIGHT = 40;
 
 function App() {
   const [viewMode, setViewMode] = useState("login");
-  const [userInfo, setUserInfo] = useState(null); // Informace o přihlášeném uživateli
+  const [userInfo, setUserInfo] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [errorLoadingAccounts, setErrorLoadingAccounts] = useState(null);
@@ -32,29 +32,22 @@ function App() {
     const handleMouseMove = (e) => {
       if (!isResizing) return;
       
-      // Při collapse stavu umožnit expand při tažení doprava
       if (isSidebarCollapsed && e.clientX > 50) {
         setIsSidebarCollapsed(false);
         const newWidth = Math.max(e.clientX, MIN_SIDEBAR_WIDTH);
         setSidebarWidth(newWidth);
-        
-        // Poslat novou šířku do main procesu
         window.electronAPI.updateSidebarWidth(newWidth);
         return;
       }
       
-      // Normální resizing
       if (!isSidebarCollapsed) {
         const newWidth = Math.min(
           Math.max(e.clientX, MIN_SIDEBAR_WIDTH),
           MAX_SIDEBAR_WIDTH
         );
         setSidebarWidth(newWidth);
-        
-        // Poslat novou šířku do main procesu
         window.electronAPI.updateSidebarWidth(newWidth);
         
-        // Auto-collapse při tažení doleva pod minimum
         if (e.clientX < MIN_SIDEBAR_WIDTH / 2) {
           setIsSidebarCollapsed(true);
         }
@@ -63,7 +56,6 @@ function App() {
 
     const stopResizing = () => {
       setIsResizing(false);
-      // Odebrání třídy z body pro col-resize cursor
       document.body.classList.remove('no-select');
     };
 
@@ -134,9 +126,8 @@ function App() {
   }, [activeTabId]);
 
   const handleGoogleLogin = useCallback((userInfo) => {
-    // Google přihlášení bylo úspěšné, přejdeme na rozcestník
     console.log("Google login successful for user:", userInfo);
-    setUserInfo(userInfo); // Uložíme informace o uživateli
+    setUserInfo(userInfo);
     setViewMode("initial");
   }, []);
 
@@ -155,7 +146,6 @@ function App() {
         setAccounts(formattedList);
         setViewMode("main");
         
-        // Inicializovat sidebar width v main procesu
         window.electronAPI.updateSidebarWidth(sidebarWidth);
         
         const clickedAccount = formattedList.find((acc) =>
@@ -172,19 +162,17 @@ function App() {
     } finally {
       setIsLoadingAccounts(false);
     }
-  }, []);
+  }, [sidebarWidth]);
 
   const handleToggleCollapse = useCallback(() => {
     if (isSidebarCollapsed) {
-      // Expand sidebar - obnovit předchozí šířku
       setIsSidebarCollapsed(false);
       setSidebarWidth(prevSidebarWidth);
       window.electronAPI.updateSidebarWidth(prevSidebarWidth);
     } else {
-      // Collapse sidebar - uložit aktuální šířku
       setPrevSidebarWidth(sidebarWidth);
       setIsSidebarCollapsed(true);
-      window.electronAPI.updateSidebarWidth(40); // Collapsed = 40px width
+      window.electronAPI.updateSidebarWidth(40);
     }
   }, [isSidebarCollapsed, sidebarWidth, prevSidebarWidth]);
 
@@ -279,24 +267,27 @@ function App() {
     setOpenTabs([]);
     setActiveTabId(null);
     setViewMode("initial");
-    // Zavoláme IPC handler pro úklid v main procesu (zavření views)
     try {
       await window.electronAPI.resetToHome();
       console.log("Main process reset successful.");
     } catch (error) {
       console.error("Error calling resetToHome in main process:", error);
     }
-    // Není potřeba volat showMainLayout zde, protože přecházíme na 'initial'
-  }, []); // Závislosti jsou prázdné, protože funkce nemění své chování
+  }, []);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     console.log("Logging out user...");
+    try {
+      await window.electronAPI.googleLogout();
+      console.log("Token successfully deleted from main process.");
+    } catch (error) {
+      console.error("Failed to delete token via main process:", error);
+    }
     setUserInfo(null);
     setAccounts([]);
     setOpenTabs([]);
     setActiveTabId(null);
     setViewMode("login");
-    // Zavoláme reset hlavního procesu
     window.electronAPI.resetToHome().catch(error => {
       console.error("Error during logout reset:", error);
     });
@@ -305,6 +296,40 @@ function App() {
   const handleSearchChange = useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
+
+  // Nová funkce pro zavolání refresh logiky
+  // Uvnitř vaší komponenty App v App.jsx
+
+  const handleRefresh = useCallback(async (accountId) => {
+    if (!accountId) {
+      console.log("No active tab to refresh.");
+      return;
+    }
+
+    // Okamžitě nastavíme stav záložky na 'loading' pro rychlou vizuální odezvu
+    setOpenTabs(currentTabs =>
+      currentTabs.map(tab =>
+        tab.id === accountId ? { ...tab, status: 'loading', error: null } : tab
+      )
+    );
+
+    console.log(`Requesting refresh for tab: ${accountId}`);
+    try {
+      // Zavoláme hlavní proces, aby obnovil WebView
+      await window.electronAPI.refreshActiveTab(accountId);
+      // O zbytek (nastavení stavu na 'ready' nebo 'error') se postarají
+      // listenery v main.js, které pošlou zprávu zpět.
+    } catch (error) {
+      console.error(`Failed to call refresh for tab ${accountId}:`, error);
+      // Pokud selže samotné volání, nastavíme chybu
+      setOpenTabs(currentTabs =>
+        currentTabs.map(tab =>
+          tab.id === accountId ? { ...tab, status: 'error', error: error.message } : tab
+        )
+      );
+    }
+  }, []); // Závislost je prázdná, protože setOpenTabs je stabilní
+
 
   const filteredAccounts = accounts.filter((account) =>
     account.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -325,7 +350,6 @@ function App() {
           viewMode === "initial" ? "with-back-img" : null
         }`}
       >
-        {/* Header s tlačítkem pro odhlášení */}
         <div className="initial-header">
           {userInfo && (
             <div className="user-info">
@@ -402,12 +426,12 @@ function App() {
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         selectedAccountId={activeTabId}
-        setViewMode={setViewMode}
         onGoHome={handleGoHome}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={handleToggleCollapse}
         onStartResize={handleStartResize}
         isResizing={isResizing}
+        onRefresh={handleRefresh}
       />
       <div className={`main-content-wrapper ${isResizing ? 'resizing' : ''}`}>
         <TabBar

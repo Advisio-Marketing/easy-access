@@ -43,4 +43,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("force-close-tab", listener);
     return () => ipcRenderer.removeListener("force-close-tab", listener);
   },
+
+  googleLogout: () => ipcRenderer.invoke("google-logout"),
+
+  refreshActiveTab: (accountId) =>
+    ipcRenderer.invoke("refresh-active-tab", accountId),
 });

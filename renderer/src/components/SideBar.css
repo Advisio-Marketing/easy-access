@@ -19,7 +19,7 @@
   position: relative;
 }
 
-.sidebar-toggle-btn {
+/* .sidebar-toggle-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -36,17 +36,16 @@
   background-color: #e9ecef;
   color: #495057;
 }
-
-.sidebar-collapsed .sidebar-toggle-btn {
-  margin-left: 0;
-  margin-top: 2px;
-}
+*/
 
 .sidebar-controls {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  /* background-color: red; */
   gap: 8px;
-  margin-right: 15px;
+  /* margin-right: 15px; */
+  padding-inline: 1rem;
 }
 
 .sidebar-title {
@@ -156,16 +155,28 @@
   text-overflow: ellipsis;
 }
 
-.home-btn {
+.home-btn,
+.sidebar-toggle-btn,
+.refresh-btn {
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 200ms linear;
+  padding: 0;
+  margin: 0;
   color: #6c757d;
 }
 
-.home-btn:hover {
+.home-btn:hover,
+.sidebar-toggle-btn:hover,
+.refresh-btn:hover {
   scale: 1.1;
   color: #495057;
+}
+
+.sidebar-collapsed .sidebar-toggle-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
 /* Resizer jako součást sidebaru */
@@ -249,4 +260,23 @@
   z-index: 1000;
 }
 
-/* Kontejner pro vyhledávání */
+/* Přidejte toto na konec vašeho CSS souboru nebo nahraďte stávající kód pro refresh */
+
+/* 1. Definice nové animace s přetočením a návratem */
+@keyframes spin-and-return {
+  0% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(540deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 2. Třída, která animaci aplikuje na ikonu */
+.refresh-btn.spinning {
+  /* Použijeme novou animaci */
+  animation: spin-and-return 1s ease-out;
+}

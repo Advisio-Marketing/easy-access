@@ -17,6 +17,7 @@
     "build": "npm run build:vite && npm run check_dist && npm run build:electron",
     "build:mac": "npm run build:vite && npm run check_dist && electron-builder --mac",
     "build:win": "npm run build:vite && npm run check_dist && electron-builder --win --x64",
+    "build:win-force": "npm run build:vite && npm run check_dist && ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES=true electron-builder --win --x64 --publish=never",
     "build:win-portable": "npm run build:vite && npm run check_dist && electron-builder --win --x64 --publish=never",
     "build:linux": "npm run build:vite && npm run check_dist && electron-builder --linux",
     "build:all": "npm run build:vite && npm run check_dist && electron-builder --mac --win --linux",
@@ -68,22 +69,19 @@
         {
           "target": "nsis",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         },
         {
           "target": "zip",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         },
         {
           "target": "portable",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         }
       ],

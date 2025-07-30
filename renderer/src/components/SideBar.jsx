@@ -1,8 +1,8 @@
-// src/renderer/src/components/Sidebar.jsx
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import "./Sidebar.css";
 import { FaHome, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaArrowsRotate } from "react-icons/fa6";
 
 function Sidebar({
   accounts,
@@ -13,18 +13,36 @@ function Sidebar({
   searchTerm,
   onSearchChange,
   selectedAccountId,
-  setViewMode,
   onGoHome,
   isCollapsed,
   onToggleCollapse,
   onStartResize,
   isResizing,
+  onRefresh, // Přidána nová prop pro refresh
 }) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshClick = () => {
+    if (isRefreshing) return;
+
+    setIsRefreshing(true);
+
+    // Zavoláme funkci z App.js s ID aktivního tabu
+    if (onRefresh) {
+      onRefresh(selectedAccountId);
+    }
+
+    // Po 1 sekundě animaci zastavíme
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
+  };
+
   if (isCollapsed) {
     return (
       <div className="sidebar sidebar-collapsed" style={{ width: '40px', minWidth: '40px' }}>
         <div className="sidebar-toggle-btn" onClick={onToggleCollapse}>
-          <FaChevronRight />
+          <FaChevronRight title="Zobrazit boční panel" />
         </div>
         <div className="sidebar-resizer" onMouseDown={onStartResize}></div>
       </div>
@@ -42,14 +60,21 @@ function Sidebar({
           <FaHome
             className="home-btn"
             onClick={onGoHome}
+            title="Zpět na domovskou obrazovku"
           />
-          <div className="sidebar-toggle-btn" onClick={onToggleCollapse}>
-            <FaChevronLeft />
-          </div>
+          <FaArrowsRotate
+            className={`refresh-btn ${isRefreshing ? "spinning" : ""}`}
+            title="Obnovit aktivní záložku"
+            onClick={handleRefreshClick}
+          />
+          <FaChevronLeft
+            className="sidebar-toggle-btn"
+            onClick={onToggleCollapse}
+            title="Skrýt boční panel"
+          />
         </div>
       </div>
 
-      {/* --- Vyhledávací pole --- */}
       <div className="sidebar-search-container">
         <input
           type="search"
@@ -57,16 +82,13 @@ function Sidebar({
           className="sidebar-search-input"
           value={searchTerm}
           onChange={onSearchChange}
-          disabled={isLoading || !!error} // Deaktivujeme hledání při načítání nebo chybě seznamu
+          disabled={isLoading || !!error}
         />
       </div>
-      {/* ----------------------- */}
 
-      {/* Zobrazení stavu načítání/chyby seznamu */}
       {isLoading && <p className="sidebar-loading">Načítám seznam...</p>}
       {error && <p className="sidebar-error">{error}</p>}
 
-      {/* Seznam účtů */}
       {!isLoading && !error && (
         <ul className="sidebar-list">
           {accounts.length === 0 && searchTerm && (
@@ -92,7 +114,6 @@ function Sidebar({
         </ul>
       )}
       
-      {/* Resizer */}
       <div 
         className={`sidebar-resizer ${isResizing ? 'resizer-active' : ''}`}
         onMouseDown={onStartResize}
@@ -106,6 +127,7 @@ Sidebar.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      client_country: PropTypes.string,
     })
   ).isRequired,
   onSelect: PropTypes.func.isRequired,
@@ -120,6 +142,7 @@ Sidebar.propTypes = {
   onToggleCollapse: PropTypes.func.isRequired,
   onStartResize: PropTypes.func.isRequired,
   isResizing: PropTypes.bool.isRequired,
+  onRefresh: PropTypes.func.isRequired, // Přidán propType pro onRefresh
 };
 
 export default Sidebar;
